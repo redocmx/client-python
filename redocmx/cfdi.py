@@ -1,50 +1,43 @@
 from .pdf import Pdf
 from .service import Service
-from pathlib import Path
+from .file import File
+from .addenda import Addenda
 
-class Cfdi:
+class Cfdi(File):
     def __init__(self):
+        super().__init__()
         self.pdf = None
         self.addenda = None
-        self.file_path = None
-        self.file_content = None
+        self.addenda_replace_values = None
         self.service = Service.get_instance()
 
-    def from_file(self, file_path):
-        self.file_path = file_path
-        return self
+    def set_addenda(self, addenda, replace_values=None):
+        if addenda and not isinstance(addenda, Addenda):
+            raise TypeError('addenda must be an instance of Addenda.')
+        if replace_values and not isinstance(replace_values, dict):
+            raise TypeError('Addenda replace values must be a valid key-value object.')
 
-    def from_string(self, file_content):
-        self.file_content = file_content
-        return self
+        self.addenda = addenda
+        self.addenda_replace_values = replace_values
 
     def to_pdf(self, payload={}):
         if self.pdf:
             return self.pdf
+        
+        if not isinstance(payload, dict):
+            raise TypeError('toPdf function only accepts an object as a parameter.')
 
-        file_content = self._get_xml_content()
-        payload['format'] = 'pdf'
+        file = self.get_file()
 
         if self.addenda:
-            payload['addenda'] = self.addenda
+            addenda_content = self.addenda.get_file_content(self.addenda_replace_values)
+            print(addenda_content)
+            payload['addenda'] = addenda_content
 
-        result = self.service.cfdis_convert(file_content, payload)
+        payload['format'] = 'pdf'
+
+        result = self.service.cfdis_convert(file["content"], payload)
         self.pdf = Pdf(result)
 
         return self.pdf
 
-    def _get_xml_content(self):
-        if self.file_content:
-            return self.file_content
-        elif self.file_path:
-            path = Path(self.file_path)
-            if not path.exists() or not path.is_file():
-                raise FileNotFoundError(f"Failed to read XML content from file: {self.file_path}. The file does not exist.")
-            return path.read_text()
-        else:
-            raise ValueError("XML content for the CFDI must be provided.")
-
-    def set_addenda(self, addenda):
-        if not isinstance(addenda, str):
-            raise TypeError("setAddenda function only accepts a string parameter.")
-        self.addenda = addenda
