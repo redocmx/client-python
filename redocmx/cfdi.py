@@ -31,12 +31,11 @@ class Cfdi(File):
 
         if self.addenda:
             addenda_content = self.addenda.get_file_content(self.addenda_replace_values)
-            print(addenda_content)
             payload['addenda'] = addenda_content
 
         payload['format'] = 'pdf'
 
-        result = self.service.cfdis_convert(file["content"], payload)
+        result = self.service.cfdis_convert(file['content'], payload)
         self.pdf = Pdf(result)
 
         return self.pdf

@@ -15,7 +15,7 @@ class File:
 
     def get_file(self):
         if self.file_content:
-            return {'content': self.file_content }
+            return { 'content': self.file_content }
 
         elif self.file_path:
             path = Path(self.file_path)
@@ -23,7 +23,7 @@ class File:
                 raise FileNotFoundError(f"Failed to read XML content from file: {self.file_path}. The file does not exist.")
             
             self.file_content = path.read_text()
-            return {'content': self.file_content }
+            return { 'content': self.file_content }
         else:
           raise ValueError(f"Failed to load file {self.__class__.__name__}, you must use from_file or from_string.")
 
